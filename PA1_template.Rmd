@@ -1,20 +1,69 @@
 ---
 title: "Reproducible Research: Peer Assessment 1"
+author: "chris-kwas"
 output: 
   html_document:
     keep_md: true
 ---
 
-
+```{r}
 ## Loading and preprocessing the data
+##library for working with data.frames in a more natural way
+library(dplyr)
+## name of file in current working directory containing data
+fileName <- "activity.csv" 
+##If file does not exist then leave error message and stop
+if(!file.exists(fileName)){ 
+    stop("Unable to find file ",fileName,call. = FALSE)
+}
+##colClasses to apply to data
+activityDataColClasses = c("integer","character","integer")
+activityData <- read.csv(file = fileName, sep = ",", colClasses = activityDataColClasses)
+##activityData <- activityData %>% 
+    ##mutate(datetime = paste(date,sprintf("%04d",interval))) %>%
+    ##mutate(interval2 = paste(sprintf("%04d",interval)))
+##activityData$datetime <- strptime(activityData$datetime,"%Y-%m-%d %H%M")
+##activityData$interval2 <- strptime(activityData$interval2,"%H%M")
+##activityData <- activityData %>% 
+##    select(datetime,date,steps)
+```
 
-
-
+```{r}
 ## What is mean total number of steps taken per day?
+by_date <- activityData %>% 
+    select(date,steps) %>%
+    group_by(date)  %>%
+    summarise(sum(steps))
+hist(by_date$`sum(steps)`,breaks=7,col="green",xlab="Daily Steps",main = "Histogram of Daily Steps")
+dataMean <- mean(na.omit(by_date$`sum(steps)`))
+dataMedian  <- median(na.omit(by_date$`sum(steps)`))
+abline(v=dataMean,col="red")
+abline(v=dataMedian,col="blue")
+legendData <- c(paste("   Mean",round(dataMean,0)),paste("Median",round(dataMedian,0)))
+legend("topright", bty = "n", cex = .875, lwd = .5, col = c("red", "blue"), xjust = 0, legend = legendData)
+
+```
 
 
 
+```{r}
 ## What is the average daily activity pattern?
+by_minute <- activityData %>%
+    select(interval,steps) %>%
+    group_by(interval)  %>%
+    summarise(mean(steps,na.rm=TRUE))
+xAxisLabel <- strptime(sprintf("%04d",by_minute$interval), "%H%M")
+maxSteps <- max(by_minute$`mean(steps, na.rm = TRUE)`)
+maxStepsTime <- by_minute$interval[by_minute$`mean(steps, na.rm = TRUE)` == maxSteps]
+maxStepsTime <- sprintf("%04d", maxStepsTime)
+xText <- strptime(maxStepsTime, "%H%M")
+timeMessage <- substr(xText,12,16)
+yText <- maxSteps 
+plot(by_minute$`mean(steps, na.rm = TRUE)`,type="l", x=xAxisLabel, xlab="Time", ylab="Steps", main="Average Daily Activity")
+meanMessage <- sprintf ("High at %s of %s mean steps", timeMessage, round(maxSteps))
+text(x=xText,y=yText,pos=4,col="blue",labels = meanMessage)
+```
+
 
 
 

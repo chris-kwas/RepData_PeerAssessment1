@@ -34,7 +34,8 @@ by_date <- activityData %>%
     select(date,steps) %>%
     group_by(date)  %>%
     summarise(sum(steps))
-hist(by_date$`sum(steps)`,breaks=7,col="green",xlab="Daily Steps",main = "Histogram of Daily Steps")
+par(mfrow = c(1,1))
+hist(by_date$`sum(steps)`,ylim=c(0,30),breaks=7,col="green",xlab="Daily Steps",main = "Histogram of Daily Steps")
 dataMean <- mean(na.omit(by_date$`sum(steps)`))
 dataMedian  <- median(na.omit(by_date$`sum(steps)`))
 abline(v=dataMean,col="red")
@@ -59,6 +60,7 @@ maxStepsTime <- sprintf("%04d", maxStepsTime)
 xText <- strptime(maxStepsTime, "%H%M")
 timeMessage <- substr(xText,12,16)
 yText <- maxSteps 
+par(mfrow = c(1,1))
 plot(by_minute$`mean(steps, na.rm = TRUE)`,type="l", x=xAxisLabel, xlab="Time", ylab="Steps", main="Average Daily Activity")
 meanMessage <- sprintf ("High at %s of %s mean steps", timeMessage, round(maxSteps))
 text(x=xText,y=yText,pos=4,col="blue",labels = meanMessage)
@@ -66,9 +68,90 @@ text(x=xText,y=yText,pos=4,col="blue",labels = meanMessage)
 
 
 
+Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
+
+Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
+
+Create a new dataset that is equal to the original dataset but with the missing data filled in.
+
+Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
+
+
+
 
 ## Imputing missing values
+```{r}
+library(lubridate)
+
+##Missing rows
+##max(c(sum(is.na(a$steps)),sum(is.na(a$interval)),sum(is.na(a$date))))
+## for missing value, use the mean for same interval and weekday
+by_mandd <- activityData %>%
+    mutate(day = wday(date)) %>%
+    select(interval,steps,day) %>%
+    group_by(day,interval)  %>%
+    summarise(mean(steps,na.rm=TRUE))
 
 
+newData <- activityData %>%
+        mutate(day = wday(date)) ##%>%
+        ##filter(date == "2012-10-01" & interval < 35)
+
+adjData <- function(x){
+    steps <- x[1]
+    if(is.na(steps)){
+        day <- as.numeric(x[4])
+        interval <- as.numeric(x[3])
+        y <- by_mandd[by_mandd$day == day & by_mandd$interval == interval,3]$`mean(steps, na.rm = TRUE)`
+        ##print("Hello")
+        ##print(day)
+        ##print(interval)
+        ##print(y)
+        ##print("Bye")
+        y <- as.numeric(y)
+        ##print(y)
+        
+        y
+    }
+    else{
+        steps;
+    }
+##by_mandd[by_mandd$day == day & by_mandd$interval == interval,]$`mean(steps, na.rm = ##TRUE)`
+}
+##head(newData)
+newData$steps <- as.numeric(apply(newData,1,adjData))
+
+##apply(newData,1,function(x){a <- x[1]; b <- x[2]; print(a); print(b)})
+##newData$steps[is.na(newData$steps)] <- adjData(newData$day,newData$interval)
+##head(newData)    
+##par(mfrow = c(2,1))
+
+by_date <- newData %>% 
+    select(date,steps) %>%
+    group_by(date)  %>%
+    summarise(sum(steps))
+hist(by_date$`sum(steps)`,ylim=c(0,35),breaks=7,col="green",xlab="Daily Steps",main = "Histogram of Daily Steps IMPUTTED")
+dataMean <- mean(na.omit(by_date$`sum(steps)`))
+dataMedian  <- median(na.omit(by_date$`sum(steps)`))
+abline(v=dataMean,col="red")
+abline(v=dataMedian,col="blue")
+legendData <- c(paste("   Mean",round(dataMean,0)),paste("Median",round(dataMedian,0)))
+legend("topright", bty = "n", cex = .875, lwd = .5, col = c("red", "blue"), xjust = 0, legend = legendData) 
+
+by_date <- activityData %>% 
+    select(date,steps) %>%
+    group_by(date)  %>%
+    summarise(sum(steps))
+hist(by_date$`sum(steps)`,ylim=c(0,35),breaks=7,col="green",xlab="Daily Steps",main = "Histogram of Daily Steps")
+dataMean <- mean(na.omit(by_date$`sum(steps)`))
+dataMedian  <- median(na.omit(by_date$`sum(steps)`))
+abline(v=dataMean,col="red")
+abline(v=dataMedian,col="blue")
+legendData <- c(paste("   Mean",round(dataMean,0)),paste("Median",round(dataMedian,0)))
+legend("topright", bty = "n", cex = .875, lwd = .5, col = c("red", "blue"), xjust = 0, legend = legendData)
+
+
+
+```
 
 ## Are there differences in activity patterns between weekdays and weekends?

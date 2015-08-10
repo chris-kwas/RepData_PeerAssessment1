@@ -131,27 +131,14 @@ by_date <- newData %>%
     group_by(date)  %>%
     summarise(sum(steps))
 hist(by_date$`sum(steps)`,ylim=c(0,35),breaks=7,col="green",xlab="Daily Steps",main = "Histogram of Daily Steps IMPUTTED")
-dataMean <- mean(na.omit(by_date$`sum(steps)`))
-dataMedian  <- median(na.omit(by_date$`sum(steps)`))
-abline(v=dataMean,col="red")
-abline(v=dataMedian,col="blue")
-legendData <- c(paste("   Mean",round(dataMean,0)),paste("Median",round(dataMedian,0)))
+dataMeanImputted <- mean(na.omit(by_date$`sum(steps)`))
+dataMedianImputted  <- median(na.omit(by_date$`sum(steps)`))
+abline(v=dataMeanImputted,col="red")
+abline(v=dataMedianImputted,col="blue")
+legendData <- c(paste("   Mean",round(dataMeanImputted,0)),paste("Median",round(dataMedianImputted,0)))
 legend("topright", bty = "n", cex = .875, lwd = .5, col = c("red", "blue"), xjust = 0, legend = legendData) 
-
-by_date <- activityData %>% 
-    select(date,steps) %>%
-    group_by(date)  %>%
-    summarise(sum(steps))
-hist(by_date$`sum(steps)`,ylim=c(0,35),breaks=7,col="green",xlab="Daily Steps",main = "Histogram of Daily Steps")
-dataMean <- mean(na.omit(by_date$`sum(steps)`))
-dataMedian  <- median(na.omit(by_date$`sum(steps)`))
-abline(v=dataMean,col="red")
-abline(v=dataMedian,col="blue")
-legendData <- c(paste("   Mean",round(dataMean,0)),paste("Median",round(dataMedian,0)))
-legend("topright", bty = "n", cex = .875, lwd = .5, col = c("red", "blue"), xjust = 0, legend = legendData)
-
-
-
+text(2500,34.5,cex = .875,paste("   Original Mean",round(dataMean,0)))
+text(2500,33,cex = .875,paste("Original Median",round(dataMedian,0)))
 ```
 
 ## Are there differences in activity patterns between weekdays and weekends?

@@ -2,7 +2,7 @@
 
 The markup [PA1_template.Rmd](PA1_template.Rmd)
 
-PA1_template as [html](https://htmlpreview.github.io/?https://github.com//chris-kwas/RepData_PeerAssessment1/master/PA1_template.html) or [raw](PA1_template.html)
+PA1_template.html as [html](https://htmlpreview.github.io/?https://github.com//chris-kwas/RepData_PeerAssessment1/master/PA1_template.html) or [raw](PA1_template.html)
 
 
 It is now possible to collect a large amount of data about personal

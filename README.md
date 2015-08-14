@@ -1,7 +1,8 @@
 ## Introduction
 
-The PA1_template.Rmd can be reached here at (PA1_template.Rmd)
-The PA1_template.html file can be reached at (PA1_template.html)
+The markup [PA1_template.Rmd](PA1_template.Rmd)
+
+The html [PA1_template.html](PA1_template.html)
 
 
 It is now possible to collect a large amount of data about personal

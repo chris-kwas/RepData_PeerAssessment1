@@ -5,9 +5,8 @@ output:
   html_document:
     keep_md: true
 ---
-
-```{r}
 ## Loading and preprocessing the data
+```{r}
 ##library for working with data.frames in a more natural way
 library(dplyr)
 ## name of file in current working directory containing data
@@ -27,9 +26,8 @@ activityData <- read.csv(file = fileName, sep = ",", colClasses = activityDataCo
 ##activityData <- activityData %>% 
 ##    select(datetime,date,steps)
 ```
-
-```{r}
 ## What is mean total number of steps taken per day?
+```{r}
 by_date <- activityData %>% 
     select(date,steps) %>%
     group_by(date)  %>%
@@ -45,10 +43,8 @@ legend("topright", bty = "n", cex = .875, lwd = .5, col = c("red", "blue"), xjus
 
 ```
 
-
-
-```{r}
 ## What is the average daily activity pattern?
+```{r}
 by_minute <- activityData %>%
     select(interval,steps) %>%
     group_by(interval)  %>%
@@ -84,13 +80,29 @@ Make a histogram of the total number of steps taken each day and Calculate and r
 library(lubridate)
 
 ##Missing rows
-##max(c(sum(is.na(a$steps)),sum(is.na(a$interval)),sum(is.na(a$date))))
+missingValues <- (c(sum(is.na(activityData$steps)),sum(is.na(activityData$interval)),sum(is.na(activityData$date))))
+data.frame(missingValues,row.names = names(activityData))
+
+
+by_mandd <- activityData %>%
+    select(date,interval,steps) %>%
+    mutate(steps = as.numeric(is.na(steps))) %>%
+    group_by(date) %>%
+    summarise(sum(steps)) %>%
+    filter(`sum(steps)` > 0) %>%
+    mutate(weekday = wday(date,label = TRUE)) %>%
+    arrange(weekday) %>% print
+
+
+
+
 ## for missing value, use the mean for same interval and weekday
 by_mandd <- activityData %>%
     mutate(day = wday(date)) %>%
     select(interval,steps,day) %>%
     group_by(day,interval)  %>%
     summarise(mean(steps,na.rm=TRUE))
+
 
 
 newData <- activityData %>%
@@ -142,3 +154,44 @@ text(2500,33,cex = .875,paste("Original Median",round(dataMedian,0)))
 ```
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+```{r}
+library(grid)
+library(ggplot2)
+a <- cbind(
+    c("Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"),
+    c("weekday","weekday","weekday","weekday","weekday","weekend","weekend"))
+by_minute <- activityData %>%
+    select(date,interval,steps) %>%
+    ##mutate(day = as.factor(weekdays(as.Date(date)))
+    mutate(day = as.factor(a[match(weekdays(as.Date(date)),a),2])) %>%
+    group_by(interval,day)  %>%
+    summarise(mean(steps,na.rm=TRUE)) %>%
+    rename(`Number of steps` = `mean(steps, na.rm = TRUE)`, Interval = interval) 
+by_minute$day <- factor(by_minute$day, levels = c("weekend","weekday"))
+ggplot(data = by_minute,aes(Interval,`Number of steps`)) + 
+    geom_line()+facet_wrap(~day,ncol=1)+
+    theme(panel.margin = unit(c(0,0,0,0),"cm"), strip.background = element_rect(fill="lightpink"))
+
+```
+
+
+##Appendix
+
+by_weekday <- by_minute %>% filter(day == "weekday")
+by_weekend <- by_minute %>% filter(day == "weekend")
+
+par(mfrow = c(4,1),mar = c(2,3,2,2), oma = c(3, 3, 1, 1))##B L T R
+
+xAxisLabel <- strptime(sprintf("%04d",by_minute$interval), "%H%M")
+plot(1:10,1:10,bg="red"); ##polygon(0,0,bg="red")
+plot(by_weekend$`mean(steps, na.rm = TRUE)`,
+     type="l",ylab="",xlab="",xaxt="n")
+##axis(1, col="dodgerblue", col.ticks="green", col.axis="orange", cex.axis=2)
+##title(main = "weekend",bg="blue")
+plot(by_weekday$`mean(steps, na.rm = TRUE)`,
+     type="l",ylab="",xlab="Interval",axes=FALSE)
+mtext("yaxis",2,outer=TRUE,bg="red")
+##legend(0,0,"weekend",3,text.col="green",bg="pink")
+
+##plot(by_minute$`mean(steps, na.rm = TRUE)`,type="l", x=xAxisLabel, xlab="Time", ##ylab="Steps", main="Average Daily Activity")

@@ -1,5 +1,9 @@
 ## Introduction
 
+The PA1_template.Rmd can be reached here at http://PA1_template.Rmd
+The PA1_template.html file can be reached at http://PA1_template.html
+
+
 It is now possible to collect a large amount of data about personal
 movement using activity monitoring devices such as a
 [Fitbit](http://www.fitbit.com), [Nike

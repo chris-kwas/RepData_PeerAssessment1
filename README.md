@@ -1,9 +1,12 @@
-## Introduction
+## Assignment
 
-The assignment markup [PA1_template.Rmd](PA1_template.Rmd)
+The assignment markup [PA1_template.md](PA1_template.md)
 
 PA1_template.html as [html](https://htmlpreview.github.io/?https://github.com//chris-kwas/RepData_PeerAssessment1/master/PA1_template.html) or [raw](PA1_template.html)
 
+The markup [PA1_template.Rmd](PA1_template.Rmd)
+
+## Introduction
 
 It is now possible to collect a large amount of data about personal
 movement using activity monitoring devices such as a

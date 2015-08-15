@@ -1,9 +1,18 @@
 # Reproducible Research: Peer Assessment 1
 chris-kwas  
 ## Loading and preprocessing the data
+Here is the code for reading in the dataset.
 
 ```r
-##library for working with data.frames in a more natural way
+## name of file in current working directory containing data
+fileName <- "activity.csv" 
+##If file does not exist then leave error message and stop
+if(!file.exists(fileName)){ 
+    stop("Unable to find file ",fileName,call. = FALSE)
+}
+activityDataColClasses = c("integer","character","integer")
+activityData <- read.csv(file = fileName, sep = ",", 
+                         colClasses =  activityDataColClasses)
 library(dplyr)
 ```
 
@@ -25,24 +34,24 @@ library(dplyr)
 ```
 
 ```r
-## name of file in current working directory containing data
-fileName <- "activity.csv" 
-##If file does not exist then leave error message and stop
-if(!file.exists(fileName)){ 
-    stop("Unable to find file ",fileName,call. = FALSE)
-}
-##colClasses to apply to data
-activityDataColClasses = c("integer","character","integer")
-activityData <- read.csv(file = fileName, sep = ",", colClasses = activityDataColClasses)
-##activityData <- activityData %>% 
-    ##mutate(datetime = paste(date,sprintf("%04d",interval))) %>%
-    ##mutate(interval2 = paste(sprintf("%04d",interval)))
-##activityData$datetime <- strptime(activityData$datetime,"%Y-%m-%d %H%M")
-##activityData$interval2 <- strptime(activityData$interval2,"%H%M")
-##activityData <- activityData %>% 
-##    select(datetime,date,steps)
+library(grid) 
+library(ggplot2)
 ```
-## What is mean total number of steps taken per day?
+
+```
+## Warning: package 'ggplot2' was built under R version 3.2.1
+```
+
+```r
+library(lubridate)
+```
+
+```
+## Warning: package 'lubridate' was built under R version 3.2.1
+```
+
+## What is mean and total number of steps taken per day?
+Here is the histogram of the total number of steps taken each day with mean and median reported.  You'll see that the computed median and mean are very close.
 
 ```r
 by_date <- activityData %>% 
@@ -50,7 +59,7 @@ by_date <- activityData %>%
     group_by(date)  %>%
     summarise(sum(steps))
 par(mfrow = c(1,1))
-hist(by_date$`sum(steps)`,ylim=c(0,30),breaks=7,col="green",xlab="Daily Steps",main = "Histogram of Daily Steps")
+hist(by_date$`sum(steps)`,ylim=c(0,30),col="green",xlab="Daily Steps",main = "Histogram of Daily Steps")
 dataMean <- mean(na.omit(by_date$`sum(steps)`))
 dataMedian  <- median(na.omit(by_date$`sum(steps)`))
 abline(v=dataMean,col="red")
@@ -61,7 +70,16 @@ legend("topright", bty = "n", cex = .875, lwd = .5, col = c("red", "blue"), xjus
 
 ![](PA1_template_files/figure-html/unnamed-chunk-2-1.png) 
 
+```r
+print(paste("Mean is ", round(dataMean), ". Median is ", round(dataMedian), ".",sep=""))
+```
+
+```
+## [1] "Mean is 10766. Median is 10765."
+```
+
 ## What is the average daily activity pattern?
+Here is a time series plot of the average number of steps taken (averaged across all days) on 5-minute intervals, showing the interval with the maximum number of steps
 
 ```r
 by_minute <- activityData %>%
@@ -83,28 +101,23 @@ text(x=xText,y=yText,pos=4,col="blue",labels = meanMessage)
 
 ![](PA1_template_files/figure-html/unnamed-chunk-3-1.png) 
 
+```r
+print(meanMessage)
+```
 
-
-Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
-
-Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
-
-Create a new dataset that is equal to the original dataset but with the missing data filled in.
-
-Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
-
-
-
+```
+## [1] "High at 08:35 of 206 mean steps"
+```
 
 ## Imputing missing values
+Here is the description and code for the strategy used for imputing missing data.
 
-```r
-library(lubridate)
-```
+Given that people may have schedules that vary depending on day of the week, the hypothesis is that missing data should be imputed from the average of the same interval and same day of the week across the dataset.  A preliminary exploration of the data set showed that data was missing for complete days, that is from midnight to midnight.  Two days of the week (Monday and Friday) had two days of data missing, with the remaining days of the week each have one missing day's worth of day.  Given no large concentration of missing data would seem to argue against the original theory.
 
-```
-## Warning: package 'lubridate' was built under R version 3.2.1
-```
+In practice the original proposed approach created a wider difference in median and mean.  Also tried to create a larger sample size of grabbing more intervals centered around the missing interval (i.e. if 12:30 was missing, grab 12:25, 12:30, and 12:35 across same day of week) but this didn't make a big difference in the calculated mean compared to the simipler first approach.  Instead went with a larger sample size of same interval across all days in dataset.
+
+In comparing this histogram with the previous histogram, one will see that both the mean and median have changed, both higher then the original.  Additionally there is a wider spread, suggesting that imputing the data is not helping the variability. 
+
 
 ```r
 ##Missing rows
@@ -150,71 +163,80 @@ by_mandd <- activityData %>%
     mutate(day = wday(date)) %>%
     select(interval,steps,day) %>%
     group_by(day,interval)  %>%
-    summarise(mean(steps,na.rm=TRUE))
+    summarise(mean(na.omit(steps)))
 
+names(by_mandd) <-c("day","interval","imputedValue")
 
-
-newData <- activityData %>%
-        mutate(day = wday(date)) ##%>%
-        ##filter(date == "2012-10-01" & interval < 35)
+newData <- activityData %>% mutate(day = wday(date))
 
 adjData <- function(x){
     steps <- x[1]
     if(is.na(steps)){
         day <- as.numeric(x[4])
         interval <- as.numeric(x[3])
-        y <- by_mandd[by_mandd$day == day & by_mandd$interval == interval,3]$`mean(steps, na.rm = TRUE)`
-        ##print("Hello")
-        ##print(day)
-        ##print(interval)
-        ##print(y)
-        ##print("Bye")
-        y <- as.numeric(y)
-        ##print(y)
+        # original code to grab mean for this interval across only the same weekday
+        # only Mondays, or only Tuesday etc.
+        #y <- by_mandd[by_mandd$day == day & 
+        #                 by_mandd$interval == interval,3]$imputedValue
+        # alternatively mean of this interval across all days of the week
+        # this is a bigger sample size and ended up being closer to the original 
+        #mean & median, plus not as wide a spread between mean and median, used this
+        y <- mean(by_mandd[by_mandd$interval == interval,3]$imputedValue)
+        #attempt to see if creating a bigger sample size (i.e. instead of 5 minutes 
+        # grab 60 minutes of data center around original interval) made big
+        # difference; short answer not much; again this was for the same day of week
+        if(FALSE){# ignore this code unless FALSE changed to TRUE
+        spreadMinutes <- 120    # < 5 use mean of original interval across all
+                    # similiar weekdays, 5 to < 10 will capture the original
+                    # interval, the one above and one below across all similiar
+                    # days, and so forth
         
-        y
+        sampleStartTime <- strptime(sprintf("%04d",interval),format="%H%M") -
+            (60 * spreadMinutes) - 150
+        sampleStartTime <- as.numeric(paste(substr(sampleStartTime,12,13),                                                substr(sampleStartTime,15,16),sep=""))
+        sampleStopTime <- strptime(sprintf("%04d",interval),format="%H%M") +
+            (60 * spreadMinutes) + 150
+        sampleStopTime <- as.numeric(paste(substr(sampleStopTime,12,13),                                                substr(sampleStopTime,15,16),sep=""))
+        if(sampleStartTime > sampleStopTime)
+            sampleStartTime = 0
+        
+        y <- mean(by_mandd[by_mandd$day == day &
+                  by_mandd$interval >= sampleStartTime &
+                  by_mandd$interval <= sampleStopTime, 3]$imputedValue,na.rm=TRUE)
+        }# end of comments
+        if(is.nan(y) | is.na(y)){
+            print(paste(day,interval,  y))
+            print(paste("    ",sampleStartTime,sampleStopTime))
+        }
+        as.numeric(y)
     }
     else{
         steps;
     }
-##by_mandd[by_mandd$day == day & by_mandd$interval == interval,]$`mean(steps, na.rm = ##TRUE)`
 }
-##head(newData)
 newData$steps <- as.numeric(apply(newData,1,adjData))
-
-##apply(newData,1,function(x){a <- x[1]; b <- x[2]; print(a); print(b)})
-##newData$steps[is.na(newData$steps)] <- adjData(newData$day,newData$interval)
-##head(newData)    
-##par(mfrow = c(2,1))
 
 by_date <- newData %>% 
     select(date,steps) %>%
     group_by(date)  %>%
     summarise(sum(steps))
-hist(by_date$`sum(steps)`,ylim=c(0,35),breaks=7,col="green",xlab="Daily Steps",main = "Histogram of Daily Steps IMPUTTED")
+hist(by_date$`sum(steps)`,ylim=c(0,35),col="green",xlab="Daily Steps",main = "Histogram of Daily Steps with Imputed Data")
 dataMeanImputted <- mean(na.omit(by_date$`sum(steps)`))
 dataMedianImputted  <- median(na.omit(by_date$`sum(steps)`))
 abline(v=dataMeanImputted,col="red")
 abline(v=dataMedianImputted,col="blue")
 legendData <- c(paste("   Mean",round(dataMeanImputted,0)),paste("Median",round(dataMedianImputted,0)))
 legend("topright", bty = "n", cex = .875, lwd = .5, col = c("red", "blue"), xjust = 0, legend = legendData) 
-text(2500,34.5,cex = .875,paste("   Original Mean",round(dataMean,0)))
-text(2500,33,cex = .875,paste("Original Median",round(dataMedian,0)))
+text(18000,29,cex = .875,adj = c(0,0), paste("For reference"))
+text(18000,27.5,cex = .875, adj = c(0,0), paste("   Original Mean",round(dataMean,0)))
+text(18075,26,cex = .875, adj = c(0,0), paste("Original Median",round(dataMedian,0)))
 ```
 
 ![](PA1_template_files/figure-html/unnamed-chunk-4-1.png) 
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
-
-```r
-library(grid)
-library(ggplot2)
-```
-
-```
-## Warning: package 'ggplot2' was built under R version 3.2.1
-```
+There is a noticeable difference in that weekend activity is spread throughout the day, where as weekdays exhibits less activity during middle of the day.
 
 ```r
 a <- cbind(
@@ -237,21 +259,20 @@ ggplot(data = by_minute,aes(Interval,`Number of steps`)) +
 
 
 ##Appendix
+Exploratory chart used during "Imputed Data" work.
 
-by_weekday <- by_minute %>% filter(day == "weekday")
-by_weekend <- by_minute %>% filter(day == "weekend")
 
-par(mfrow = c(4,1),mar = c(2,3,2,2), oma = c(3, 3, 1, 1))##B L T R
+```r
+newData <- activityData %>%
+        mutate(day = wday(date), imputed = as.factor(is.na(steps))) 
+       
+levels(newData$imputed) <-   c("Original","Imputed")
 
-xAxisLabel <- strptime(sprintf("%04d",by_minute$interval), "%H%M")
-plot(1:10,1:10,bg="red"); ##polygon(0,0,bg="red")
-plot(by_weekend$`mean(steps, na.rm = TRUE)`,
-     type="l",ylab="",xlab="",xaxt="n")
-##axis(1, col="dodgerblue", col.ticks="green", col.axis="orange", cex.axis=2)
-##title(main = "weekend",bg="blue")
-plot(by_weekday$`mean(steps, na.rm = TRUE)`,
-     type="l",ylab="",xlab="Interval",axes=FALSE)
-mtext("yaxis",2,outer=TRUE,bg="red")
-##legend(0,0,"weekend",3,text.col="green",bg="pink")
+newData$steps <- as.numeric(apply(newData,1,adjData))
+ggplot(data = newData,aes(date,steps,col=imputed)) + 
+    geom_point()+#facet_wrap(~imputed,ncol=1)+
+    labs(title = "Comparison of Data Values in New Dataset") +
+    theme(panel.margin = unit(c(0,0,0,0),"cm"), strip.background = element_rect(fill="lightpink"))
+```
 
-##plot(by_minute$`mean(steps, na.rm = TRUE)`,type="l", x=xAxisLabel, xlab="Time", ##ylab="Steps", main="Average Daily Activity")
+![](PA1_template_files/figure-html/unnamed-chunk-6-1.png) 

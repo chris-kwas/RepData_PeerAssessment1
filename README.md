@@ -1,6 +1,6 @@
 ## Introduction
 
-The markup [PA1_template.Rmd](PA1_template.Rmd)
+The assignment markup [PA1_template.Rmd](PA1_template.Rmd)
 
 PA1_template.html as [html](https://htmlpreview.github.io/?https://github.com//chris-kwas/RepData_PeerAssessment1/master/PA1_template.html) or [raw](PA1_template.html)
 

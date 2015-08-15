@@ -1,5 +1,10 @@
-# Reproducible Research: Peer Assessment 1
-chris-kwas  
+---
+title: "Reproducible Research: Peer Assessment 1"
+author: "chris-kwas"
+output: 
+  html_document:
+    keep_md: true
+---
 ## Loading and preprocessing the data
 Here is the code for reading in the dataset.
 
@@ -68,7 +73,7 @@ legendData <- c(paste("   Mean",round(dataMean,0)),paste("Median",round(dataMedi
 legend("topright", bty = "n", cex = .875, lwd = .5, col = c("red", "blue"), xjust = 0, legend = legendData)
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-2-1.png) 
+![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-2-1.png) 
 
 ```r
 print(paste("Mean is ", round(dataMean), ". Median is ", round(dataMedian), ".",sep=""))
@@ -99,7 +104,7 @@ meanMessage <- sprintf ("High at %s of %s mean steps", timeMessage, round(maxSte
 text(x=xText,y=yText,pos=4,col="blue",labels = meanMessage)
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-3-1.png) 
+![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-1.png) 
 
 ```r
 print(meanMessage)
@@ -202,7 +207,7 @@ text(18000,27.5,cex = .875, adj = c(0,0), paste("   Original Mean",round(dataMea
 text(18075,26,cex = .875, adj = c(0,0), paste("Original Median",round(dataMedian,0)))
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-4-1.png) 
+![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4-1.png) 
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
@@ -225,7 +230,7 @@ ggplot(data = by_minute,aes(Interval,`Number of steps`)) +
     theme(panel.margin = unit(c(0,0,0,0),"cm"), strip.background = element_rect(fill="lightpink"))
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-5-1.png) 
+![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5-1.png) 
 
 
 ##Appendix
@@ -245,4 +250,4 @@ ggplot(data = newData,aes(date,steps,col=imputed)) +
     theme(panel.margin = unit(c(0,0,0,0),"cm"), strip.background = element_rect(fill="lightpink"))
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-6-1.png) 
+![plot of chunk unnamed-chunk-6](figure/unnamed-chunk-6-1.png) 

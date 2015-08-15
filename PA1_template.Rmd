@@ -101,39 +101,9 @@ adjData <- function(x){
     if(is.na(steps)){
         day <- as.numeric(x[4])
         interval <- as.numeric(x[3])
-        # original code to grab mean for this interval across only the same weekday
-        # only Mondays, or only Tuesday etc.
-        #y <- by_mandd[by_mandd$day == day & 
-        #                 by_mandd$interval == interval,3]$imputedValue
-        # alternatively mean of this interval across all days of the week
-        # this is a bigger sample size and ended up being closer to the original 
-        #mean & median, plus not as wide a spread between mean and median, used this
-        y <- mean(by_mandd[by_mandd$interval == interval,3]$imputedValue)
-        #attempt to see if creating a bigger sample size (i.e. instead of 5 minutes 
-        # grab 60 minutes of data center around original interval) made big
-        # difference; short answer not much; again this was for the same day of week
-        if(FALSE){# ignore this code unless FALSE changed to TRUE
-        spreadMinutes <- 120    # < 5 use mean of original interval across all
-                    # similiar weekdays, 5 to < 10 will capture the original
-                    # interval, the one above and one below across all similiar
-                    # days, and so forth
-        
-        sampleStartTime <- strptime(sprintf("%04d",interval),format="%H%M") -
-            (60 * spreadMinutes) - 150
-        sampleStartTime <- as.numeric(paste(substr(sampleStartTime,12,13),                                                substr(sampleStartTime,15,16),sep=""))
-        sampleStopTime <- strptime(sprintf("%04d",interval),format="%H%M") +
-            (60 * spreadMinutes) + 150
-        sampleStopTime <- as.numeric(paste(substr(sampleStopTime,12,13),                                                substr(sampleStopTime,15,16),sep=""))
-        if(sampleStartTime > sampleStopTime)
-            sampleStartTime = 0
-        
-        y <- mean(by_mandd[by_mandd$day == day &
-                  by_mandd$interval >= sampleStartTime &
-                  by_mandd$interval <= sampleStopTime, 3]$imputedValue,na.rm=TRUE)
-        }# end of comments
+       y <- mean(by_mandd[by_mandd$interval == interval,3]$imputedValue)
         if(is.nan(y) | is.na(y)){
             print(paste(day,interval,  y))
-            print(paste("    ",sampleStartTime,sampleStopTime))
         }
         as.numeric(y)
     }
